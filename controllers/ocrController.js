@@ -41,24 +41,36 @@ const ocrController = {
   // Process image with OCR
   processImage: async (req, res) => {
     try {
-      const { imageData, provider, language, outputFormat, enhanceImage } = req.body;
+      const { imageData, provider, language, outputFormat, enhanceImage, messageKey, mode } = req.body;
       
       if (!imageData) {
+        console.warn('⚠️  Missing imageData in request');
         return res.status(400).json({
           success: false,
           error: 'Image data is required'
         });
       }
 
+      console.log(`📤 Processing OCR request: provider=${provider}, language=${language}, format=${outputFormat}`);
+      
       const result = await ocrService.processImage(imageData, {
         provider,
         language,
         outputFormat,
-        enhanceImage
+        enhanceImage,
+        messageKey,
+        mode
       });
 
+      if (!result.success) {
+        console.warn(`⚠️  OCR processing failed: ${result.error}`);
+        return res.status(400).json(result);
+      }
+
+      console.log(`✅ OCR processing succeeded in ${result.processingTime}ms`);
       res.json(result);
     } catch (error) {
+      console.error('❌ OCR controller error:', error);
       res.status(500).json({
         success: false,
         error: error.message

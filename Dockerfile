@@ -1,23 +1,22 @@
-# Backend Dockerfile
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY Backend/package*.json ./
+# tini avoids zombie processes when the Node server spawns workers
+RUN apk add --no-cache tini
 
-# Install dependencies
-RUN npm install
+ENV NODE_ENV=production \
+  PORT=3001
 
-# Copy application code
-COPY Backend/ .
+COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Expose port
+COPY . .e
+
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/api/users', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD node -e "require('http').get('http://127.0.0.1:3001/api', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
-# Start application
-CMD ["npm", "start"]
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "server.js"]

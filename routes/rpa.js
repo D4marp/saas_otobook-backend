@@ -25,6 +25,8 @@ router.delete('/rpa/workflows/:workflowId', rpaController.deleteWorkflow);
 // Workflow execution routes
 router.post('/rpa/workflows/:workflowId/execute', rpaController.executeWorkflow);
 router.post('/rpa/demo', rpaController.demoExecute);
+router.post('/rpa/invoice-runs', rpaController.saveInvoiceRun);
+router.post('/rpa/invoice-extract', rpaController.extractInvoiceData);
 
 // Connection and history routes
 router.post('/rpa/test-connection', rpaController.testConnection);

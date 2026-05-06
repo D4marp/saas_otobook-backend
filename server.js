@@ -89,17 +89,22 @@ app.use((err, req, res, next) => {
 });
 
 // Initialize database and start server
-initializeDatabase()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 Backend server running on http://localhost:${PORT}`);
-      console.log(`📚 API Documentation available at http://localhost:${PORT}/api`);
-      console.log(`💾 Database: ${process.env.DB_NAME}`);
-    });
-  })
-  .catch(error => {
-    console.error('Failed to initialize database:', error);
-    process.exit(1);
+// Start server regardless of database connection (allows OCR/RPA services to work independently)
+const startServer = async () => {
+  try {
+    await initializeDatabase();
+    console.log('✅ Database initialized successfully');
+  } catch (error) {
+    console.warn('⚠️  Database initialization warning:', error.message);
+    console.log('ℹ️  Server will continue running. Database-dependent features may not work.');
+  }
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Backend server running on http://localhost:${PORT}`);
+    console.log(`📚 API Documentation available at http://localhost:${PORT}/api`);
   });
+};
+
+startServer();
 
 module.exports = app;
